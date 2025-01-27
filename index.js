@@ -54,6 +54,9 @@ async function run() {
     };
     // use verify admin after verifyToken
     const verifyAdmin = async (req, res, next) => {
+      if (!req.decoded || !req.decoded.email) {
+        return res.status(401).send({ message: 'Unauthorized access: Missing email in token.' });
+    }
       const email = req.decoded.email;
       const query = { email: email };
       const user = await userCollection.findOne(query);
@@ -64,7 +67,7 @@ async function run() {
       next();
     }
     //admin checking from useAdmin()
-    app.get('/users/admin/:email', verifyToken,verifyAdmin, async (req, res) => {
+    app.get('/users/admin/:email',verifyToken, async (req, res) => {
       const email = req.params.email;
 
       if (email !== req.decoded.email) {
@@ -200,7 +203,7 @@ async function run() {
     });
 
     // update a articles status from AllArticlesPage
-    app.patch("/articlesStatus/:id",verifyToken, async (req, res) => {
+    app.patch("/articlesStatus/:id",verifyToken,verifyAdmin, async (req, res) => {
       const id = req.params.id;
       const { status, reason, isPremium } = req.body;
       const filter = { _id: new ObjectId(id) };
@@ -218,7 +221,7 @@ async function run() {
       res.send(result);
     });
     // patch view count articles by id for details page
-    app.patch("/viewCount/:id", async (req, res) => {
+    app.patch("/viewCount/:id",verifyToken, async (req, res) => {
       const { id } = req.params;
       const { views } = req.body;
       const query = { _id: new ObjectId(id) };
