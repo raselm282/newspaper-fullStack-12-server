@@ -50,7 +50,7 @@ async function run() {
     });
     //verifyToken
     const verifyToken = (req, res, next) => {
-      console.log("from verifyToken", req.headers.authorization);
+      // console.log("from verifyToken", req.headers.authorization);
       if (!req.headers.authorization) {
         return res.status(401).send({ message: "unauthorized access" });
       }
@@ -128,7 +128,7 @@ async function run() {
     });
     //post for publisher from add publisher
     app.post("/addPublisher",verifyToken,verifyAdmin, async (req, res) => {
-      console.log("Received data:", req.body); // Debug
+      // console.log("Received data:", req.body); // Debug
       const item = req.body;
       const result = await publishersCollection.insertOne(item);
       res.send(result);
@@ -164,7 +164,7 @@ async function run() {
       res.send(result);
     });
     app.post("/articlesPost", async (req, res) => {
-      console.log("Received data:", req.body); // Debug
+      // console.log("Received data:", req.body); // Debug
       const item = req.body;
       const result = await articlesCollection.insertOne(item);
       res.send(result);
