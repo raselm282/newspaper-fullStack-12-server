@@ -1,14 +1,25 @@
 const express = require("express");
+const app = express();
 const cors = require("cors");
 const { MongoClient, ServerApiVersion, ObjectId } = require("mongodb");
 require("dotenv").config();
 const jwt = require("jsonwebtoken");
 
-const app = express();
 const port = process.env.PORT || 5000;
-
+// const corsOptions = {
+//   origin: ["http://localhost:5173", "https://assignments12-clients.web.app"],
+//   methods: ["GET", "POST", "PUT", "PATCH", "DELETE"],
+//   allowedHeaders: ["Content-Type", "Authorization"],
+//   credentials: true,
+// };
+const corsOptions = {
+  origin: ["https://assignments12-clients.web.app","http://localhost:5173"],
+  credentials: true,
+  
+};
 // Middleware
-app.use(cors({ origin: "http://localhost:5173", credentials: true }));
+app.use(cors(corsOptions));
+// app.use(cors());
 app.use(express.json());
 
 // MongoDB URI and client setup
@@ -23,7 +34,7 @@ const client = new MongoClient(uri, {
 
 async function run() {
   try {
-    await client.connect(); // Keep the connection open
+    // await client.connect(); // Keep the connection open
     const articlesCollection = client.db("articlesDb").collection("articles");
     const userCollection = client.db("articlesDb").collection("users");
     const publishersCollection = client
@@ -33,7 +44,7 @@ async function run() {
     app.post("/jwt", async (req, res) => {
       const user = req.body;
       const token = jwt.sign(user, process.env.ACCESS_TOKEN_SECRET, {
-        expiresIn: "1h",
+        expiresIn: "365d",
       });
       res.send({ token });
     });
@@ -54,9 +65,7 @@ async function run() {
     };
     // use verify admin after verifyToken
     const verifyAdmin = async (req, res, next) => {
-      if (!req.decoded || !req.decoded.email) {
-        return res.status(401).send({ message: 'Unauthorized access: Missing email in token.' });
-    }
+    
       const email = req.decoded.email;
       const query = { email: email };
       const user = await userCollection.findOne(query);
@@ -67,7 +76,7 @@ async function run() {
       next();
     }
     //admin checking from useAdmin()
-    app.get('/users/admin/:email',verifyToken, async (req, res) => {
+    app.get('/users/adminTrue/:email',verifyToken, async (req, res) => {
       const email = req.params.email;
 
       if (email !== req.decoded.email) {
@@ -113,7 +122,7 @@ async function run() {
       })
     })
     //get request for publisher of add publisher
-    app.get("/publisherData", async (req, res) => {
+    app.get("/publishersData", async (req, res) => {
       const result = await publishersCollection.find().toArray();
       res.send(result);
     });
@@ -154,7 +163,7 @@ async function run() {
       const result = await userCollection.find().toArray();
       res.send(result);
     });
-    app.post("/articles",verifyToken, async (req, res) => {
+    app.post("/articlesPost", async (req, res) => {
       console.log("Received data:", req.body); // Debug
       const item = req.body;
       const result = await articlesCollection.insertOne(item);
@@ -236,13 +245,15 @@ async function run() {
     });
    
 
-    console.log("Connected to MongoDB and ready to accept requests.");
-  } catch (error) {
-    console.error("MongoDB connection error:", error);
+    // console.log("Connected to MongoDB and ready to accept requests.");
+  } finally {
+    // Ensures that the client will close when you finish/error
+    // await client.close();
   }
+  
 }
 
-run();
+run().catch(console.dir)
 
 app.get("/", (req, res) => {
   res.send("my assignments 12 is running");
