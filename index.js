@@ -160,9 +160,35 @@ async function run() {
     });
     // users related api
     app.get("/usersData", verifyToken,verifyAdmin, async (req, res) => {
-      const result = await userCollection.find().toArray();
+      const size = parseInt(req.query.size)
+      const page = parseInt(req.query.page) - 1
+      const result = await userCollection.find().skip(page * size)
+      .limit(size).toArray();
       res.send(result);
     });
+    // Get all jobs data count from db
+  app.get('/jobs-countUser', async (req, res) => {
+    // const { search, publishers, tags } = req.query;
+    // const filter = req.query.filter
+    // // const search = req.query.search
+    // let query = { status: "approved" }
+    // Search by Title (Case Insensitive)
+  //   if (search) {
+  //     query.title = { $regex: search, $options: "i" };
+  // }
+  //   // Filter by Publisher
+  //   if (publishers) {
+  //     query.publishers = publishers;
+  // }
+
+  // // Filter by Tags (Multiple tags support)
+  // if (tags) {
+  //     query.tags = { $in: tags.split(",") };
+  // }
+    const count = await userCollection.countDocuments()
+
+    res.send({ count })
+  })
     app.post("/articlesPost", async (req, res) => {
       // console.log("Received data:", req.body); // Debug
       const item = req.body;
@@ -196,9 +222,113 @@ async function run() {
     });
     //gat all articles data from db for all articles
     app.get("/articles", async (req, res) => {
+      // const size = parseInt(req.query.size)
+      // const page = parseInt(req.query.page) - 1
       const result = await articlesCollection.find().toArray();
       res.send(result);
     });
+    //gat all articles data from db for all articles
+    app.get("/allArticlesData", async (req, res) => {
+      const size = parseInt(req.query.size)
+      const page = parseInt(req.query.page) - 1
+      const result = await articlesCollection.find().skip(page * size)
+      .limit(size).toArray();
+      res.send(result);
+    });
+    // Get all jobs data count from db for dashboard/allJobs
+  app.get('/jobs-countAllArticlePage', async (req, res) => {
+    // const { search, publishers, tags } = req.query;
+    // const filter = req.query.filter
+    // // const search = req.query.search
+    // let query = { status: "approved" }
+    // Search by Title (Case Insensitive)
+  //   if (search) {
+  //     query.title = { $regex: search, $options: "i" };
+  // }
+  //   // Filter by Publisher
+  //   if (publishers) {
+  //     query.publishers = publishers;
+  // }
+
+  // // Filter by Tags (Multiple tags support)
+  // if (tags) {
+  //     query.tags = { $in: tags.split(",") };
+  // }
+    const count = await articlesCollection.countDocuments()
+
+    res.send({ count })
+  })
+    //gat all articles data from db for all articles page
+    // app.get("/allArticles", async (req, res) => {
+    //   // const isStatus = req.query.status
+    //   const filter = req.query.filter
+    //   const search = req.query.search
+    //   console.log(search);
+    //   // if(decodedEmail !== email) return res.status(401).send({message: 'unauthorize access'})
+    //   let query = {
+    //     title: {
+    //       $regex: search,
+    //       $options: 'i',
+    //     },
+    //   }
+    //   // if (isStatus) query.isStatus = isStatus
+    //   if (filter) query.category = filter
+    //   const result = await articlesCollection.find(query).toArray();
+    //   res.send(result);
+    // });
+    app.get("/allArticlesPages", async (req, res) => {
+      const size = parseInt(req.query.size)
+      const page = parseInt(req.query.page) - 1
+      try {
+          const { search, publishers, tags } = req.query;
+  
+          let query = { status: "approved" }; // Only Approved Articles
+  
+          // Search by Title (Case Insensitive)
+          if (search) {
+              query.title = { $regex: search, $options: "i" };
+          }
+  
+          // Filter by Publisher
+          if (publishers) {
+              query.publishers = publishers;
+          }
+  
+          // Filter by Tags (Multiple tags support)
+          if (tags) {
+              query.tags = { $in: tags.split(",") };
+          }
+  
+          const articles = await articlesCollection.find(query).skip(page * size)
+          .limit(size).toArray();
+          res.send(articles);
+      } catch (error) {
+          res.status(500).send({ message: "Server Error", error });
+      }
+  });
+  // Get all jobs data count from db
+  app.get('/jobs-count', async (req, res) => {
+    const { search, publishers, tags } = req.query;
+    const filter = req.query.filter
+    // const search = req.query.search
+    let query = { status: "approved" }
+    // Search by Title (Case Insensitive)
+    if (search) {
+      query.title = { $regex: search, $options: "i" };
+  }
+    // Filter by Publisher
+    if (publishers) {
+      query.publishers = publishers;
+  }
+
+  // Filter by Tags (Multiple tags support)
+  if (tags) {
+      query.tags = { $in: tags.split(",") };
+  }
+    const count = await articlesCollection.countDocuments(query)
+
+    res.send({ count })
+  })
     // update a articles status from AllArticlesPage
     app.patch("/articlesPremium/:id",verifyToken, async (req, res) => {
       const id = req.params.id;
