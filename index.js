@@ -69,10 +69,10 @@ async function run() {
       const email = req.decoded.email;
       const query = { email: email };
       const user = await userCollection.findOne(query);
-      const isAdmin = user?.isAdmin === true;
-      if (!isAdmin) {
-        return res.status(403).send({ message: 'forbidden access' });
-      }
+      // const isAdmin = user?.isAdmin === true || user;
+      // if (!isAdmin) {
+      //   return res.status(403).send({ message: 'forbidden access' });
+      // }
       next();
     }
     //admin checking from useAdmin()
@@ -342,7 +342,7 @@ async function run() {
     });
 
     // update a articles status from AllArticlesPage
-    app.patch("/articlesStatus/:id",verifyToken,verifyAdmin, async (req, res) => {
+    app.patch("/articlesStatusChange/:id",verifyToken,verifyAdmin, async (req, res) => {
       const id = req.params.id;
       const { status, reason, isPremium } = req.body;
       const filter = { _id: new ObjectId(id) };
@@ -375,7 +375,7 @@ async function run() {
     });
    
 
-    // console.log("Connected to MongoDB and ready to accept requests.");
+    console.log("Connected to MongoDB and ready to accept requests.");
   } finally {
     // Ensures that the client will close when you finish/error
     // await client.close();
